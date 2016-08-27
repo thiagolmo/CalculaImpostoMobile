@@ -9,6 +9,7 @@ import android.view.View;
 
 public class MainActivity extends AppCompatActivity {
 
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -21,74 +22,96 @@ public class MainActivity extends AppCompatActivity {
         String sSalario = edSalario.getText().toString();
         double salario = Double.parseDouble(sSalario);
 
-        //DECLARAÇÃO DE VARIAVEIS
-        double salario_INSS = 0;
-        double valor_IR = 0;
-        double valor_INSS = 0;
-        double salario_liquido = 0;
-        double valor_sal_INSS = 0;
+        double INSS = calculoINSS(salario);
+        double IR = calculoImpostoRenda(salario,INSS);
+        double calculoSalarioLiquido = calculoSalarioLiquido(salario,IR,INSS);
 
-        /*PRIMEIRO PASSO CALCULO DO INSS*/
+        if (validaSalarioMinino(salario) == true) {
+            String sResultadoValorINSS = String.valueOf(String.format("%.2f", INSS));
+            String sResultadoValorIR = String.valueOf(String.format("%.2f", IR));
+            String sResultado = String.valueOf(String.format("%.2f", calculoSalarioLiquido));
 
+            TextView tvResultadoSalario = (TextView) findViewById(R.id.txValorSalario);
+            TextView tvResultadoValorINSS = (TextView) findViewById(R.id.txtINSS);
+            TextView tvResultadoValorIR = (TextView) findViewById(R.id.txIR);
+            TextView tvResultado = (TextView) findViewById(R.id.txResultado);
 
+            tvResultadoSalario.setText("R$ " + sSalario);
+            tvResultadoValorINSS.setText("R$ " + sResultadoValorINSS);
+            tvResultadoValorIR.setText("R$ " + sResultadoValorIR);
+            tvResultado.setText("TOTAL: R$ " + sResultado);
+        }
+    }
+    /*PRIMEIRO PASSO -  CALCULO DO INSS*/
+    public double calculoINSS(double salario){
+
+        double salarioINSS;
+        double valorINSS = 0;
+        
         //FAIXA A
         if(salario<=1556.94){
-            valor_INSS = salario * 0.08;
-            salario_INSS = salario - valor_INSS;
-        //FAIXA B
+            valorINSS = salario * 0.08;
+            //FAIXA B
         }else if(salario<=2594.92){
-            valor_INSS = salario * 0.09;
-            salario_INSS = salario - valor_INSS;
-        //FAIXA C
+            valorINSS = salario * 0.09;
+            //FAIXA C
         }else if(salario>2594.93){
             //TETO
             if(salario>=5189.82){
-                salario_INSS=5189.82;}
+                salarioINSS=5189.82;}
             else {
-                salario_INSS=salario;
+                salarioINSS=salario;
             }
-            valor_INSS = salario_INSS * 0.11;
-            valor_sal_INSS = salario - valor_INSS;
+            valorINSS = salarioINSS * 0.11;
+            
         }
+        return valorINSS;
         
-        /*SEGUNDO PASSO CALCULO IMPOSTO DE RENDA*/
+    }
 
+    /*SEGUNDO PASSO - CALCULO IMPOSTO DE RENDA*/
+    public double calculoImpostoRenda(double salario, double valorINSS){
+        
+        double valorSalarioINSS = salario - valorINSS;
+        double valorIR = 0;
 
         //FAIXA A
-        if (valor_sal_INSS<=1903.98){
-            valor_IR = 0;
-        //FAIXA B
-        }else if (valor_sal_INSS<=2826.65){
-            valor_IR = (valor_sal_INSS * 0.075)-142.80;
-        //FAIXA C
-        }else if (valor_sal_INSS<=3751.05){
-            valor_IR = (valor_sal_INSS * 0.15)-354.80;
-        //FAIXA D
-        }else if(valor_sal_INSS<=4664.68){
-            valor_IR = (valor_sal_INSS * 0.225)-636.13;
-        //FAIXA E
-        }else if (valor_sal_INSS>4664.68){
-            valor_IR = (valor_sal_INSS * 0.275)-869.36;
+        if (valorSalarioINSS<=1903.98){
+            valorIR = 0;
+            //FAIXA B
+        }else if (valorSalarioINSS<=2826.65){
+            valorIR = (valorSalarioINSS * 0.075)-142.80;
+            //FAIXA C
+        }else if (valorSalarioINSS<=3751.05){
+            valorIR = (valorSalarioINSS * 0.15)-354.80;
+            //FAIXA D
+        }else if(valorSalarioINSS<=4664.68){
+            valorIR = (valorSalarioINSS * 0.225)-636.13;
+            //FAIXA E
+        }else if (valorSalarioINSS>4664.68){
+            valorIR = (valorSalarioINSS * 0.275)-869.36;
         }
+        
+        return valorIR;
 
-        salario_liquido = (salario - valor_INSS) - valor_IR;
+    }
 
+    /*TERCEIRO PASSO - CALCULO SALARIO LIQUIDO*/
+    public double calculoSalarioLiquido(double salario, double valorIR, double valorINSS){
 
+        double salarioLiquido = (salario - valorINSS) - valorIR;
+        return salarioLiquido;
 
-        String sResultadoValorINSS = String.valueOf(valor_INSS);
-        String sResultadoValorIR= String.valueOf(valor_IR);
-        String sResultado = String.valueOf(salario_liquido);
+    }
 
-        TextView tvResultadoSalario = (TextView) findViewById(R.id.txValorSalario);
-        TextView tvResultadoValorINSS = (TextView) findViewById(R.id.txtINSS);
-        TextView tvResultadoValorIR = (TextView) findViewById(R.id.txIR);
-        TextView tvResultado = (TextView) findViewById(R.id.txResultado);
-
-        tvResultadoSalario.setText("R$ "+sSalario);
-        tvResultadoValorINSS.setText("R$ "+sResultadoValorINSS);
-        tvResultadoValorIR.setText("R$ "+sResultadoValorIR);
-        tvResultado.setText("TOTAL: R$ "+sResultado);
-
+    /*VALIDAÇÃO SALÁRIO MININO*/
+    public boolean validaSalarioMinino(double salario){
+        if (salario < 880.00){
+            Toast.makeText(getApplicationContext(),"Salário inferior ao salário Mínimo (R$ 880,00).",Toast.LENGTH_LONG).show();
+            return false;
+        }else{
+            return true;
+        }
 
     }
 
